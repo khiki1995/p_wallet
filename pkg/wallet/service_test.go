@@ -77,9 +77,10 @@ func TestSerivce_FindAccountByID(t *testing.T) {
 		t.Error(err)
 	}
 
+	// fails
 	account, err = s.FindAccountByID(int64(uuid.New().ID()))
 	if err == nil {
-		t.Errorf("Должна быть ошибка так как отправил не существующий аккаунт, а получил: %v", account)
+		t.Errorf("FindAccountByID(): here should be error, but comes = %v", account)
 	}
 }
 
@@ -134,10 +135,44 @@ func TestService_Repeat(t *testing.T) {
 			return
 		}
 	}
-
+	// fails
 	err = s.Reject(uuid.NewString())
 	if err == nil {
 		t.Errorf("Repeat(): here should be error, but comes = %v", err)
+		return
+	}
+}
+
+func TestService_FavoritePayment(t *testing.T) {
+	s := &Service{}
+	_, payments, err := s.addAccount(defaultTestAccount)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	for _, payment := range payments {
+		favorite, err := s.FavoritePayment(payment.ID, "test")
+		if err != nil {
+			t.Errorf("FavoritePayment(): can't add payment to favorite, error = %v", err)
+			return
+		}
+
+		_, err = s.PayFromFavorite(favorite.ID)
+		if err != nil {
+			t.Errorf("PayFromFavorite(): can't create payment by favorite, error = %v", err)
+			return
+		}
+	}
+	// fails
+	favor, err := s.FavoritePayment(uuid.NewString(), "test")
+	if err == nil {
+		t.Errorf("FavoritePayment(): here should be error, but comes = %v", favor)
+		return
+	}
+	pay, err := s.PayFromFavorite(uuid.NewString())
+	if err == nil {
+		t.Errorf("PayFromFavorite(): here should be error, but comes = %v", pay)
 		return
 	}
 }
