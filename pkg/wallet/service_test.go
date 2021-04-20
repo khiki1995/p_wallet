@@ -118,3 +118,26 @@ func TestService_Reject(t *testing.T) {
 		}
 	}
 }
+
+func TestService_Repeat(t *testing.T) {
+	s := &Service{}
+	_, payments, err := s.addAccount(defaultTestAccount)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	for _, payment := range payments {
+		err = s.Reject(payment.ID)
+		if err != nil {
+			t.Errorf("Repeat(): can't repeat payment, error = %v", err)
+			return
+		}
+	}
+
+	err = s.Reject(uuid.NewString())
+	if err == nil {
+		t.Errorf("Repeat(): here should be error, but comes = %v", err)
+		return
+	}
+}
